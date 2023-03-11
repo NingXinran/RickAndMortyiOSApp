@@ -7,7 +7,7 @@ https://youtu.be/EZpZDuOAFKE
 This is my first iOS app which I am using to both learn Swift and basic iOS
 app development.
 
-Currently on Part 3 of 50.
+Currently on Part 6 of 50.
 
 Final Outcome:
 - Written in Swift
