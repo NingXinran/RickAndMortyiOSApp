@@ -80,3 +80,4 @@ extension RMRequest {
     // Create some request variables that we can use
     static let listCharactersRequest = RMRequest(endpoint: .character)
 }
+

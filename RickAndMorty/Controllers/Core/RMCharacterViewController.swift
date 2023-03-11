@@ -9,22 +9,21 @@ import UIKit
 
 /// Controller to show and serach for characters
 final class RMCharacterViewController: UIViewController {
+    
+    private let characterListView = RMCharacterListView()  // Create an instance of the view
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground  // Light or Dark depending on system
         title = "Characters"
+        view.addSubview(characterListView)
+        NSLayoutConstraint.activate([
+            characterListView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            characterListView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor),
+            characterListView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
+            characterListView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
         
-        RMService.shared.execute(.listCharactersRequest, expecting: RMGetAllCharactersResponse.self) {
-            result in switch result {
-            case .success(let model):
-                print("success: api call")
-                print("Total: " + String(model.info.count))
-                print("Page result count: " + String(model.info.pages))
-            case .failure(let error):
-                print(String(describing: error))
-            }
-        }
     }
 }
