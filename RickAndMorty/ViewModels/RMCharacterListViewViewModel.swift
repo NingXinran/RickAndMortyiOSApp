@@ -16,9 +16,9 @@ class RMCharacterListViewViewModel: NSObject {  // Now add the data source proto
         RMService.shared.execute(.listCharactersRequest, expecting: RMGetAllCharactersResponse.self) {
             result in switch result {
             case .success(let model):
-                print("success: api call")
-                print("Total: " + String(model.info.count))
-                print("Page result count: " + String(model.info.pages))
+                print("successful api call")
+                print(String(describing: model.results.first?.image ?? "No image"))
+                print("Example image URL: ")
             case .failure(let error):
                 print(String(describing: error))
             }
@@ -34,8 +34,14 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
     /// Function to dequeue to obtain a single cell
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         // dequeue to return a single cell
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
-        cell.backgroundColor = .systemBlue
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RMCharacterCollectionViewCell.cellIdentifier, for: indexPath
+        ) as? RMCharacterCollectionViewCell else {
+            fatalError("Unsupported cell")
+        }
+        let viewModel = RMCharacterCollectionViewCellViewModel(
+            characterName: "Xinran", characterStatus: .alive, characterImageURL: URL(string: "https://rickandmortyapi.com/api/character/avatar/1.jpeg")
+        )
+        cell.configure(with: viewModel)
         return cell
     }
     

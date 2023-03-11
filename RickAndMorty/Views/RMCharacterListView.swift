@@ -28,8 +28,8 @@ final class RMCharacterListView: UIView {
         collectionView.isHidden = true  // hide when data is still loading
         collectionView.alpha = 0  // opacity is 0
         collectionView.translatesAutoresizingMaskIntoConstraints = false  // keep size constant
-        collectionView.register(UICollectionViewCell.self,
-                                forCellWithReuseIdentifier: "cell")
+        collectionView.register(RMCharacterCollectionViewCell.self,
+                                forCellWithReuseIdentifier: RMCharacterCollectionViewCell.cellIdentifier)  // we want the cell to represent data about a character
         return collectionView
     }()
 
