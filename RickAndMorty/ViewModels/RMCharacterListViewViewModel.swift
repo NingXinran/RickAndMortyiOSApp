@@ -11,14 +11,39 @@ import UIKit
 // Each model has a single responsibility
 // This one makes the API call to get the results
 
+protocol RMCharacterListViewViewModelDelegate: AnyObject {
+    func didLoadInitialCharacters()
+}
+
 class RMCharacterListViewViewModel: NSObject {  // Now add the data source protocol to this view model?
+    
+    public weak var delegate: RMCharacterListViewViewModelDelegate?
+    
+    private var characters: [RMCharacter] = [] {
+        didSet {  // Whenever the value of characters is assigned, do the following
+            for character in characters {
+                let viewModel = RMCharacterCollectionViewCellViewModel(characterName: character.name, characterStatus: character.status, characterImageURL: URL(string: character.image))
+                cellViewModels.append(viewModel)
+            }
+            
+        }
+    }
+    
+    private var cellViewModels: [RMCharacterCollectionViewCellViewModel] = []
+    
     func fetchCharacters(){
         RMService.shared.execute(.listCharactersRequest, expecting: RMGetAllCharactersResponse.self) {
-            result in switch result {
-            case .success(let model):
-                print("successful api call")
-                print(String(describing: model.results.first?.image ?? "No image"))
-                print("Example image URL: ")
+            [weak self] result in switch result {
+            case .success(let responseModel):
+                let results = responseModel.results
+                self?.characters = results
+                // Trigger the update of the view
+                DispatchQueue.main.async {
+                    // Tell the delegate that the initial characters were loaded
+                    self?.delegate?.didLoadInitialCharacters()
+                }
+                
+//                let info = responseModel.info  // Pagination urls
             case .failure(let error):
                 print(String(describing: error))
             }
@@ -29,7 +54,7 @@ class RMCharacterListViewViewModel: NSObject {  // Now add the data source proto
 // Extend the class to comply to the protocol
 extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 20  // hardcode for now
+        return cellViewModels.count
     }
     /// Function to dequeue to obtain a single cell
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -38,9 +63,7 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         ) as? RMCharacterCollectionViewCell else {
             fatalError("Unsupported cell")
         }
-        let viewModel = RMCharacterCollectionViewCellViewModel(
-            characterName: "Xinran", characterStatus: .alive, characterImageURL: URL(string: "https://rickandmortyapi.com/api/character/avatar/1.jpeg")
-        )
+        let viewModel = cellViewModels[indexPath.row]  // only have one section, but looking at row
         cell.configure(with: viewModel)
         return cell
     }

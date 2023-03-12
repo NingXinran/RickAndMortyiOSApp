@@ -42,6 +42,9 @@ final class RMCharacterListView: UIView {
         
         spinner.startAnimating()
         
+        // Tell the viewModel to update
+        viewModel.delegate = self
+        
         // Request to fetch characters
         viewModel.fetchCharacters()
         
@@ -73,13 +76,20 @@ final class RMCharacterListView: UIView {
         collectionView.dataSource = viewModel
         collectionView.delegate = viewModel
         
-        DispatchQueue.main.asyncAfter(deadline: .now()+2, execute: {  // delay by 2 seconds!!
-            self.spinner.stopAnimating()
-            self.collectionView.isHidden = false
-            UIView.animate(withDuration: 0.4) {
-                self.collectionView.alpha = 1
-            }
-        })
+        
     }
 
+}
+
+extension RMCharacterListView: RMCharacterListViewViewModelDelegate {
+    /// Tells the collectionView to discard current items and recreate items based on the current state of the data source object
+    func didLoadInitialCharacters() {
+        self.spinner.stopAnimating()
+        self.collectionView.isHidden = false
+        collectionView.reloadData()  // Only for initial fetch
+        UIView.animate(withDuration: 0.4) {
+            self.collectionView.alpha = 1
+        }
+        // Goal: Unlimited scroll
+    }
 }
