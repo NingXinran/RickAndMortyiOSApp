@@ -7,8 +7,17 @@
 
 import UIKit
 
+protocol RMCharacterListViewDelegate: AnyObject {  // can hang on in weak capacity
+    func rmCharacterListView(
+        _ characterListView: RMCharacterListView,
+        didSelectCharacter character: RMCharacter
+    )
+}
+
 /// View that handles showing a list of characters, loader etc.
 final class RMCharacterListView: UIView {
+    
+    public weak var delegate: RMCharacterListViewDelegate?
     
     private let viewModel = RMCharacterListViewViewModel()
     
@@ -75,8 +84,6 @@ final class RMCharacterListView: UIView {
     private func setUpCollectionView() {
         collectionView.dataSource = viewModel
         collectionView.delegate = viewModel
-        
-        
     }
 
 }
@@ -91,5 +98,9 @@ extension RMCharacterListView: RMCharacterListViewViewModelDelegate {
             self.collectionView.alpha = 1
         }
         // Goal: Unlimited scroll
+    }
+    
+    func didSelectCharacter(_ character: RMCharacter) {
+        delegate?.rmCharacterListView(self, didSelectCharacter: character)
     }
 }

@@ -13,6 +13,7 @@ import UIKit
 
 protocol RMCharacterListViewViewModelDelegate: AnyObject {
     func didLoadInitialCharacters()
+    func didSelectCharacter(_ character: RMCharacter)
 }
 
 class RMCharacterListViewViewModel: NSObject {  // Now add the data source protocol to this view model?
@@ -76,5 +77,16 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
             width: width,
             height: height
         )
+    }
+    
+    /// Handling a tap on a cell
+    /// - Parameters:
+    ///   - collectionView: The characterListCollectionView
+    ///   - indexPath: The position of the item we are clicking on. This is provided as an argument to the function.
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        let character = characters[indexPath.row]
+        // Notify the characterViewController
+        delegate?.didSelectCharacter(character)  // Informs the collectionView that we have selected the given character
     }
 }
