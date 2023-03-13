@@ -16,6 +16,7 @@ protocol RMCharacterListViewViewModelDelegate: AnyObject {
     func didSelectCharacter(_ character: RMCharacter)
 }
 
+/// View model to handle character list view logic
 class RMCharacterListViewViewModel: NSObject {  // Now add the data source protocol to this view model?
     
     public weak var delegate: RMCharacterListViewViewModelDelegate?
@@ -32,12 +33,17 @@ class RMCharacterListViewViewModel: NSObject {  // Now add the data source proto
     
     private var cellViewModels: [RMCharacterCollectionViewCellViewModel] = []
     
+    private var apiInfo: RMGetAllCharactersResponse.Info? = nil  // Default value is nil
+    
+    /// Fetch initial set of characters (count: 20)
     func fetchCharacters(){
         RMService.shared.execute(.listCharactersRequest, expecting: RMGetAllCharactersResponse.self) {
             [weak self] result in switch result {
             case .success(let responseModel):
                 let results = responseModel.results
+                let info = responseModel.info  // Has next?
                 self?.characters = results
+                self?.apiInfo = info
                 // Trigger the update of the view
                 DispatchQueue.main.async {
                     // Tell the delegate that the initial characters were loaded
@@ -50,7 +56,18 @@ class RMCharacterListViewViewModel: NSObject {  // Now add the data source proto
             }
         }
     }
+    
+    /// Paginate if additional characters are needed
+    public func fetchAdditionalCharacters() {
+        // Fetch characters here
+    }
+    
+    public var shouldShowLoadMoreInidicator: Bool {
+        return apiInfo?.next != nil
+    }
 }
+
+// MARK: - CollectionView
 
 // Extend the class to comply to the protocol
 extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
@@ -88,5 +105,14 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         let character = characters[indexPath.row]
         // Notify the characterViewController
         delegate?.didSelectCharacter(character)  // Informs the collectionView that we have selected the given character
+    }
+}
+
+// MARK: - ScrollView
+extension RMCharacterListViewViewModel: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard shouldShowLoadMoreInidicator else {
+            return
+        }
     }
 }
