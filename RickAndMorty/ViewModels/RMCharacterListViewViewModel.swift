@@ -21,6 +21,8 @@ class RMCharacterListViewViewModel: NSObject {  // Now add the data source proto
     
     public weak var delegate: RMCharacterListViewViewModelDelegate?
     
+    private var isLoadingMoreCharacters = false
+    
     private var characters: [RMCharacter] = [] {
         didSet {  // Whenever the value of characters is assigned, do the following
             for character in characters {
@@ -60,6 +62,8 @@ class RMCharacterListViewViewModel: NSObject {  // Now add the data source proto
     /// Paginate if additional characters are needed
     public func fetchAdditionalCharacters() {
         // Fetch characters here
+        isLoadingMoreCharacters = true  // Update this var so we only fetch once
+        
     }
     
     public var shouldShowLoadMoreInidicator: Bool {
@@ -106,13 +110,47 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         // Notify the characterViewController
         delegate?.didSelectCharacter(character)  // Informs the collectionView that we have selected the given character
     }
+    
+    /// Function to dequeue (i.e. show) )the footerLoadingCollectionReusableView
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        /// shouldShowLoadMoreIndicator is a variable
+        guard kind == UICollectionView.elementKindSectionFooter,
+              let footer = collectionView.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: RMFooterLoadingCollectionReusableView.identifier,
+            for: indexPath
+        ) as? RMFooterLoadingCollectionReusableView else {
+            fatalError("Unsupported")
+        }
+        // Forcibly cast as a LoadingCollectionReusableView and then start animating the spinner
+        footer.startAnimating() 
+        return footer
+    }
+    
+    /// Function to set the size of the footer that was dequeued
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        /// Result of this function is a CGSize. Want width to be same as collectionView; height is hardcoded
+        guard shouldShowLoadMoreInidicator else {
+            return .zero
+        }
+        return CGSize(width: collectionView.frame.width, height: 100)
+    }
 }
 
 // MARK: - ScrollView
 extension RMCharacterListViewViewModel: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard shouldShowLoadMoreInidicator else {
+        // Only want to print it once
+        guard shouldShowLoadMoreInidicator, !isLoadingMoreCharacters else {
             return
+        }
+        let offset = scrollView.contentOffset.y
+        let totalContentHeight = scrollView.contentSize.height
+        let totalScrollViewFixedHeight = scrollView.frame.size.height
+        
+        // How we can know we are at the bottom
+        if offset >= (totalContentHeight - totalScrollViewFixedHeight - 120) {
+            fetchAdditionalCharacters()
         }
     }
 }
